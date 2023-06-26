@@ -1,4 +1,4 @@
-## Experiments with Turing Pi
+## Experiments with a Turing Pi 2 
 
 preliminary experiments with a [Turing Pi 2](https://turingpi.com/product/turing-pi-2/) running a [k3s](https://k3s.io/) cluster.
 
