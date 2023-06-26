@@ -1,0 +1,30 @@
+---
+- name: TuringPiNodesPower
+  hosts: bmc
+  gather_facts: false
+  vars:
+    tpinodes:
+      - node1
+      - node2
+      - node3
+      - node4
+    tpihostnames:
+      - jetson-01
+      - jetson-02
+      - jetson-03
+      - jetson-04
+  tasks:
+    - name: Power on Turing Pi nodes
+      ansible.builtin.uri:
+        url: http://{{ inventory_hostname }}/api/bmc/?opt=set&type=power&{{ item }}=1
+        method: POST
+      delegate_to: localhost
+      loop: "{{ tpinodes }}"
+    - name: Wait for SSH
+      ansible.builtin.wait_for:
+        host: "{{ item }}"
+        port: 22
+        search_regex: OpenSSH
+        timeout: 300
+      delegate_to: localhost
+      loop: "{{ tpihostnames }}"
