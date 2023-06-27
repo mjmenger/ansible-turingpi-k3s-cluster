@@ -53,6 +53,7 @@
     - name: Show url to call
       ansible.builtin.debug:
         msg: "http://turing/api/bmc/?opt=set&type=power&{{ tpinode }}=0"
+        verbosity: 1
       delegate_to: localhost
       tags:
         - controllers
