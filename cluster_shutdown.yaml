@@ -1,0 +1,5 @@
+---
+- name: Include shutdown workers
+  ansible.builtin.import_playbook: workers_shutdown.yaml
+- name: Include shutdown controllers
+  ansible.builtin.import_playbook: controllers_shutdown.yaml

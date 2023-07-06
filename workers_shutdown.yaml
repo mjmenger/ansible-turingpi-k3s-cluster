@@ -1,18 +1,26 @@
 ---
-- name: Shutdown controller nodes
-  hosts: controllers
+- name: Shutdown worker nodes
+  hosts: workers
   gather_facts: false
+  vars:
+    bmc: turingpi
   tasks:
-    - name: Get node names
+    - name: Get all node names
       ansible.builtin.uri:
-        url: "http://turing/api/bmc/?opt=get&type=nodeinfo"
+        url: "http://{{ bmc }}/api/bmc/?opt=get&type=nodeinfo"
         method: POST
       register: nodenames
       delegate_to: localhost
       tags:
-        - controllers
+        - workers
         - setup
         - poweroff
+    - name: Dump node info
+      ansible.builtin.debug:
+        msg: "{{ nodenames }}"
+      tags:
+        - workers
+        - setup
     - name: Show node info per inventory_hostname
       ansible.builtin.debug:
         msg: "{{ item }} is {{ nodenames.json.response[0][item] }}"
@@ -20,22 +28,23 @@
       when: 'inventory_hostname in nodenames.json.response[0][item]'
       with_items: "{{ nodenames.json.response[0] }}"
       tags:
-        - controllers
+        - workers
         - setup
+        - poweroff
     - name: Set turing node name per inventory_hostname
       ansible.builtin.set_fact:
         tpinode: "{{ item }}"
       when: 'inventory_hostname in nodenames.json.response[0][item]'
       with_items: "{{ nodenames.json.response[0] }}"
       tags:
-        - controllers
+        - workers
         - setup
         - poweroff
     - name: Shutdown
       community.general.shutdown:
         delay: 10
       tags:
-        - controllers
+        - workers
         - shutdown
     - name: Wait for ping loss
       ansible.builtin.command: ping -c 2 "{{ inventory_hostname }}"
@@ -47,16 +56,17 @@
       failed_when: ('100% packet loss' not in pingresponse.stdout)
       register: pingresponse
       tags:
-        - controllers
+        - workers
         - wait
+        - shutdown
         - poweroff
     - name: Show url to call
       ansible.builtin.debug:
-        msg: "http://turing/api/bmc/?opt=set&type=power&{{ tpinode }}=0"
+        msg: "http://{{ bmc }}/api/bmc/?opt=set&type=power&{{ tpinode }}=0"
         verbosity: 1
       delegate_to: localhost
       tags:
-        - controllers
+        - workers
         - setup
         - poweroff
     - name: Wait additional 30 seconds before power off
@@ -65,9 +75,9 @@
       delegate_to: localhost
     - name: Power off node
       ansible.builtin.uri:
-        url: "http://turing/api/bmc/?opt=set&type=power&{{ tpinode }}=0"
+        url: "http://{{ bmc }}/api/bmc/?opt=set&type=power&{{ tpinode }}=0"
         method: POST
       delegate_to: localhost
       tags:
-        - controllers
+        - workers
         - poweroff
