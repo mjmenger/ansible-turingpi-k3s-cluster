@@ -1,0 +1,18 @@
+---
+- name: TuringPiNodesPower
+  hosts: bmc
+  gather_facts: false
+  vars:
+    tpinodes:
+      - name: node1
+        hostname: jetson-01
+      - name: node2
+        hostname: jetson-02
+      - name: node3
+        hostname: jetson-03
+      - name: node4
+        hostname: jetson-04
+  tasks:
+    - name: Power each node
+      ansible.builtin.include_tasks: cluster_node_poweron.yaml
+      with_list: "{{ tpinodes }}"

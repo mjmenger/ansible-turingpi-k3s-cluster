@@ -1,0 +1,17 @@
+---
+- name: Power each node
+  ansible.builtin.uri:
+    url: http://{{ inventory_hostname }}/api/bmc/?opt=set&type=power&{{ item.name }}=1
+    method: POST
+  delegate_to: localhost
+- name: Wait for SSH
+  ansible.builtin.wait_for:
+    host: "{{ item.hostname }}"
+    port: 22
+    search_regex: OpenSSH
+    timeout: 10
+  register: sshresult
+  until: "sshresult is not failed"
+  retries: 10
+  delay: 5
+  delegate_to: localhost

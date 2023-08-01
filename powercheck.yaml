@@ -1,0 +1,19 @@
+- hosts: bmc
+  gather_facts: False
+  vars:
+  tasks:
+    - name: "check power status"
+      register: tpi_powerstatus
+      raw: tpi -p status
+    - name: "output power status"
+      debug:
+        msg: "{{tpi_powerstatus.stdout_lines | join('') | from_json}}"
+    - name: "get power status response"
+      set_fact:
+        powerstatusresponse: "{{tpi_powerstatus.stdout_lines | join('') | from_json}}"
+    - name: "parse power status response"
+      set_fact:
+        powerstatus: "{{powerstatusresponse.response[0]}}"
+    - name: "another debug message"
+      debug:
+        var: powerstatus
